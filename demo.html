@@ -74,10 +74,11 @@
                 onclick="openWebview()">Mở Webview</button>
 
                 <br><br><br>
-               
+
             </div>
         </div>
         <script src="vnpt-econtract/vnpt-econtract.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         
         <script>
             VNPTeContract.init();
@@ -133,88 +134,111 @@
 			}
 
 			function taoHopDong(){
-			    var myHeaders = new Headers();
-			    var fileInput = document.getElementById('fileInput');
-			    var accessToken = document.getElementById("accesstoken").value;
-			    var idContract = document.getElementById("contractGroupId").value;
-			    if(accessToken == ""){
-			        alert("Vui lòng lấy access token trước khi tạo hợp đồng");
-			        return;
-                }
-
-                if(idContract == ""){
-                    alert("Vui lòng nhập id hợp đồng");
+			    var form = new FormData();
+                form.append("customer", "{\"email\": \"testemail@yopmail.com\",\"sdt\": \"0944556332\",\"userType\": \"CONSUMER\",\"ten\": \"test email ne\",\"noiCap\": \"da nang\",\"tenToChuc\": \"to chuc test ne\",\"mst\": \"09924523234\",\"loaiGtId\": \"1\",\"noiCap\": \"\",\"soDkdn\": \"\",\"ngayCapSoDkdn\": \"2021-12-22\",\"noiCapDkkd\": \"\"}");
+                form.append("contract", "{\"autoRenew\": \"true\",\"callbackUrl\": \"test url\",\"contractValue\": \"20000\",\"creationNote\": \"\",\"endDate\": \"2021-11-17\",\"flowTemplateId\": \"d4b7e398-586b-4364-8af0-2a1c869cd0f4\",\"sequence\": 2,\"signFlow\": [{\"signType\": \"DRAFT\",\"signForm\": [\"OTP\",\"EKYC\",\"OTP_EMAIL\",\"NO_AUTHEN\",\"EKYC_EMAIL\",\"USB_TOKEN\",\"SMART_CA\"],\"userId\": \"2671dc91-5175-4c8d-a901-0fe01ac1e41d\",\"sequence\": 1,\"limitDate\": 3},{\"signType\": \"APPROVE\",\"signForm\": [\"OTP\",\"EKYC\",\"OTP_EMAIL\",\"NO_AUTHEN\",\"EKYC_EMAIL\",\"USB_TOKEN\",\"SMART_CA\"],\"departmentId\": \"\",\"userId\": \"2671dc91-5175-4c8d-a901-0fe01ac1e41d\",\"sequence\": 2,\"limitDate\": 3}],\"signForm\": [\"USB_TOKEN\",\"SMART_CA\"],\"templateId\": \"606196ce5e3f61a09ef8ed55\",\"title\": \"test create contract\",\"validDate\": \"2021-11-17\",\"verificationType\": \"NONE\",\"fixedPosition\": false}");
+                if($('#fileInput')[0].files.length > 0){
+                    form.append("attachFile", $('#fileInput')[0].files[0]);
+                }else{
+                    alert("Chưa chọn file");
                     return;
                 }
-                myHeaders.append("Authorization", "Bearer " + accessToken);
 
-                var formdata = new FormData();
-                formdata.append("customer", "{\n    \"email\": \"testemail@yopmail.com\",\n    \"sdt\": \"0944556332\",\n    \"userType\": \"CONSUMER\",\n    \"ten\": \"test email ne\",\n    \"noiCap\": \"da nang\",\n    \"tenToChuc\": \"to chuc test ne\",\n    \"mst\": \"09924523234\",\n    \"loaiGtId\": \"1\",\n    \"noiCap\": \"\",\n    \"soDkdn\": \"\",\n    \"ngayCapSoDkdn\": \"2021-12-22\",\n    \"noiCapDkkd\": \"\"\n  }");
-                formdata.append("contract", "{\n  \"autoRenew\": \"true\",\n  \"callbackUrl\": \"test url\",\n  \"contractValue\": \"20000\",\n  \"creationNote\": \"\",\n  \"endDate\": \"2021-11-17\",\n  \"flowTemplateId\": \"ad83c080-25cb-4aff-82a5-5e051ea4d09e\",\n  \"sequence\": 2,\n  \"signFlow\": [\n    {\n      \"signType\": \"DRAFT\",\n      \"signForm\": [\n        \"OTP\",\n        \"EKYC\",\n        \"OTP_EMAIL\",\n        \"NO_AUTHEN\",\n        \"EKYC_EMAIL\",\n        \"USB_TOKEN\",\n        \"SMART_CA\"\n      ],\n      \"userId\": \"duynk794@tng.vn\",\n      \"sequence\": 1,\n      \"limitDate\": 3\n    },\n    {\n      \"signType\": \"APPROVE\",\n      \"signForm\": [\n        \"OTP\",\n        \"EKYC\",\n        \"OTP_EMAIL\",\n        \"NO_AUTHEN\",\n        \"EKYC_EMAIL\",\n        \"USB_TOKEN\",\n        \"SMART_CA\"\n      ],\n      \"departmentId\": \"\",\n      \"userId\": \"33ddab26-6b0e-4c29-b300-f0f79e56481b\",\n      \"sequence\": 2,\n      \"limitDate\": 3\n    }\n  ],\n  \"signForm\": [\n     \"USB_TOKEN\",\n       \"SMART_CA\"\n  ],\n  \"templateId\": \"606196ce5e3f61a09ef8ed55\",\n  \"title\": \"test create contract\",\n  \"validDate\": \"2021-11-17\",\n  \"verificationType\": \"NONE\",\n  \"fixedPosition\": false\n}");
-                formdata.append("", fileInput.files[0], fileInput.files[0].name);
-                formdata.append("fields", "{}");
+                form.append("fields", "{}");
 
-                var requestOptions = {
-                  method: 'POST',
-                  headers: myHeaders,
-                  body: formdata,
-                  redirect: 'follow'
+                var settings = {
+                  "url": "https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/create-draft-from-file-raw",
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Authorization": "Bearer "+document.getElementById("accesstoken").value,
+                  },
+                  "processData": false,
+                  "mimeType": "multipart/form-data",
+                  "contentType": false,
+                  "data": form
                 };
 
-                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/{"+idContract+"}/digital-sign", requestOptions)
-                  .then(response => response.text())
-                  .then(result => console.log(result))
-                  .catch(error => console.log('error', error));
+                $.ajax(settings).done(function (response) {
+                    var res = jQuery.parseJSON(response);
+                    if(res.message == "ECT-00000000"){
+                        document.getElementById("contractGroupId").value = res.object.contractId;
+                        alert("Tạo hợp đồng thành công");
+                    }else{
+                        alert("Tạo hợp đồng thất bại");
+                    }
+                    console.log(res);
+                });
 			}
 
 			function guiHopDong(){
-			    var myHeaders = new Headers();
-                myHeaders.append("Content-Type", "application/json");
                 var idContract = document.getElementById("contractGroupId").value;
                 if(idContract == ""){
-                    alert("Vui lòng tạo hợp đồng trước khi gửi");
-                    return;
-                }
-                var raw = "";
-
-                var requestOptions = {
-                  method: 'POST',
-                  headers: myHeaders,
-                  body: raw,
-                  redirect: 'follow'
+                        alert("Vui lòng tạo hợp đồng trước khi gửi");
+                        return;
+                 }
+			    var settings = {
+                  "url": "https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/"+idContract+"/submit-contract",
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer "+document.getElementById("accesstoken").value
+                  },
                 };
 
-                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/"+idContract+"/submit-contract", requestOptions)
-                  .then(response => response.text())
-                  .then(result => console.log(result))
-                  .catch(error => console.log('error', error));
+                $.ajax(settings).done(function (response) {
+                    var res = jQuery.parseJSON(response);
+                        if(res.message == "ECT-00000000"){
+                            alert("Gửi hợp đồng thành công");
+                        }else{
+                            alert("Gửi hợp đồng thất bại");
+                        }
+                    console.log(res);
+                });
             }
 
             function uploadHopDong(){
-                var myHeaders = new Headers();
+
                 var accessToken = document.getElementById("accesstoken").value;
                 if(accessToken == ""){
                     alert("Vui lòng lấy access token trước khi upload hợp đồng");
                     return;
                 }
-                myHeaders.append("Authorization", "Bearer " + accessToken);
+                var idContract = document.getElementById("contractGroupId").value;
+                if(idContract == ""){
+                        alert("Vui lòng tạo hợp đồng trước khi gửi");
+                        return;
+                 }
 
                 var formdata = new FormData();
-                formdata.append("file", fileInput.files[0], "/Users/thopn95/C/CÔNG VIỆC/c72c7c08-3e0e-4e59-b011-2407a31ee124.pdf");
-                formdata.append("data", "{\n\"SignForm\":\"OTP_EMAIL\",\n\"name\": \"Phan Ngọc Thơ\",\n\"taxCode\":\"1231231234\",\n\"provider\": \"Công Ty VNPT\",\n\"pathImg\": \"iVBORw0KGgoAAAANSUhEUgAAAZAAAAJYCAYAAABM7LCIAABym\",\n\"identifierCode\": \"1231231234\", \n\"phone\":\"0917881199\",\n\"email\":\"abc@gmail.com\",\n\"phone\":\"0917881199\",\n\"status\": \"VALID\",\n\"signType\": \"APPROVAL\",\n\"ekycInfo\": \"APPROVAL\",\n}");
+                if($('#fileInput')[0].files.length > 0){
+                    formdata.append("file", $('#fileInput')[0].files[0]);
+                }else{
+                    alert("Chưa chọn file");
+                    return;
+                }
 
-                var requestOptions = {
-                  method: 'POST',
-                  headers: myHeaders,
-                  body: formdata,
-                  redirect: 'follow'
+                formdata.append("data", "{\"SignForm\":\"OTP_EMAIL\",\n\"name\": \"Phan Ngọc Thơ\",\n\"taxCode\":\"1231231234\",\n\"provider\": \"Công Ty VNPT\",\n\"pathImg\": \"iVBORw0KGgoAAAANSUhEUgAAAZAAAAJYCAYAAABM7LCIAABym\",\n\"identifierCode\": \"1231231234\", \n\"phone\":\"0917881199\",\n\"email\":\"abc@gmail.com\",\n\"phone\":\"0917881199\",\n\"status\": \"VALID\",\n\"signType\": \"APPROVAL\",\n\"ekycInfo\": \"APPROVAL\"}");
+
+
+                var settings = {
+                  "url": "https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/"+idContract+"/digital-sign",
+                  "method": "POST",
+                  "timeout": 0,
+                  "headers": {
+                    "Authorization": "Bearer "+accessToken,
+                  },
+                  "processData": false,
+                  "mimeType": "multipart/form-data",
+                  "contentType": false,
+                  "data": formdata
                 };
 
-                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/{contractId}/digital-sign", requestOptions)
-                  .then(response => response.text())
-                  .then(result => console.log(result))
-                  .catch(error => console.log('error', error));
-                            }
+                $.ajax(settings).done(function (response) {
+                  console.log(response);
+                });
+               }
         </script>
     </body>
 </html>
