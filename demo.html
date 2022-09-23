@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Bài kiểm tra thực hành eContrat</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <link rel="stylesheet" href="styles.css">
+        <link rel="stylesheet" href="vnpt-econtract/vnpt-econtract.min.css">
+        <style>
+            .w3-container {
+                display: flex;
+                justify-content: center;
+            }
+            .content {
+                display: inline-block;
+                width: 50%;
+                border: 1px solid rgba(192, 192, 192, 0.034);
+                margin-top: 50px;
+            }
+
+            @media (max-width: 768px) {
+                .content {
+                    width: 50;
+                }
+            }
+
+            .btn-open-webview {
+                margin-left: auto;
+                margin-top: 16px;
+            }
+
+            button {
+                outline: unset;
+            }
+
+            input {
+                outline: unset;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="w3-container w3-cell-middle">
+            <div class="content">
+                <h1>Bài kiểm tra thực hành VNPT eContract</h1>
+            </div>
+        </div>
+        <div class="w3-container w3-cell-middle">
+            <div class="content">
+                <label>Access Token:</label>
+                <input class="w3-input" type="text" id="accesstoken" style="margin-bottom: 16px">
+                
+                <label>ID hợp đồng:</label>
+                <span><i>(Nhập ID hợp đồng đối với trường hợp muốn vào thẳng màn hình view hợp đồng)</i></span>
+                <input class="w3-input" type="text" id="contractGroupId" style="margin-bottom: 16px">
+
+                <label>Hành động (action):</label>
+                <input class="w3-input" type="text" id="action" style="margin-bottom: 16px" value="SIGN">
+
+                <label>File hợp đồng:</label>
+
+                <input class="w3-input" type="file" id="fileInput" style="margin-bottom: 16px">
+    
+				<button class="w3-btn w3-ripple w3-blue btn-open-webview"
+                onclick="getAccessToken()">Lấy Access Token</button>
+                    <button class="w3-btn w3-ripple w3-blue btn-open-webview"
+                            onclick="taoHopDong()">Tạo hợp đồng</button>
+                        <button class="w3-btn w3-ripple w3-blue btn-open-webview"
+                                onclick="guiHopDong()">Gửi hợp đồng</button>
+    <button class="w3-btn w3-ripple w3-blue btn-open-webview"
+                                    onclick="uploadHopDong()">Upload hợp đồng</button>
+
+                <button class="w3-btn w3-ripple w3-blue btn-open-webview"
+                onclick="openWebview()">Mở Webview</button>
+
+                <br><br><br>
+               
+            </div>
+        </div>
+        <script src="vnpt-econtract/vnpt-econtract.min.js"></script>
+        
+        <script>
+            VNPTeContract.init();
+
+            VNPTeContract.callBackEndSign = function (data) {
+                console.log(data);
+                if (data) {
+                    if (data.status == "SIGN_SUCCESS") {
+                        console.log("Ký thành công!");
+                    } else if (data.status == "CANCEL") {
+                        console.log("Tắt popup và huỷ phiên làm việc với VNPT eContract!");
+                    }
+                }
+            }
+
+            function openWebview() {
+                var accessToken = document.getElementById("accesstoken");
+                var contractGroupId = document.getElementById("contractGroupId");
+                var action = document.getElementById("action");
+
+                var data = {
+                    accessToken: accessToken.value,
+                    contractId: contractGroupId.value,
+                    action: action.value
+                }
+                VNPTeContract.open(data);
+            }
+
+			function getAccessToken(){
+				var myHeaders = new Headers();
+				myHeaders.append("Content-Type", "application/json");
+
+				var raw = JSON.stringify({
+				"grant_type": "client_credentials",
+				"client_id": "test.client@econtract.vnpt.vn",
+				"client_secret": "U30nrmdko76057dz5aQvV9ug0mTsqAQy"
+				});
+
+				var requestOptions = {
+				method: 'POST',
+				headers: myHeaders,
+				body: raw,
+				redirect: 'follow'
+				};
+
+				fetch("https://apigateway-econtract-staging.vnptit3.vn/auth-service/oauth/token", requestOptions)
+				.then(response => response.text())
+				.then(result => {
+                    var data = JSON.parse(result);
+                    document.getElementById("accesstoken").value = data.access_token;
+                })
+				.catch(error => console.log('error', error));
+			}
+
+			function taoHopDong(){
+			    var myHeaders = new Headers();
+			    var fileInput = document.getElementById('fileInput');
+			    var accessToken = document.getElementById("accesstoken").value;
+			    var idContract = document.getElementById("contractGroupId").value;
+			    if(accessToken == ""){
+			        alert("Vui lòng lấy access token trước khi tạo hợp đồng");
+			        return;
+                }
+
+                if(idContract == ""){
+                    alert("Vui lòng nhập id hợp đồng");
+                    return;
+                }
+                myHeaders.append("Authorization", "Bearer " + accessToken);
+
+                var formdata = new FormData();
+                formdata.append("customer", "{\n    \"email\": \"testemail@yopmail.com\",\n    \"sdt\": \"0944556332\",\n    \"userType\": \"CONSUMER\",\n    \"ten\": \"test email ne\",\n    \"noiCap\": \"da nang\",\n    \"tenToChuc\": \"to chuc test ne\",\n    \"mst\": \"09924523234\",\n    \"loaiGtId\": \"1\",\n    \"noiCap\": \"\",\n    \"soDkdn\": \"\",\n    \"ngayCapSoDkdn\": \"2021-12-22\",\n    \"noiCapDkkd\": \"\"\n  }");
+                formdata.append("contract", "{\n  \"autoRenew\": \"true\",\n  \"callbackUrl\": \"test url\",\n  \"contractValue\": \"20000\",\n  \"creationNote\": \"\",\n  \"endDate\": \"2021-11-17\",\n  \"flowTemplateId\": \"ad83c080-25cb-4aff-82a5-5e051ea4d09e\",\n  \"sequence\": 2,\n  \"signFlow\": [\n    {\n      \"signType\": \"DRAFT\",\n      \"signForm\": [\n        \"OTP\",\n        \"EKYC\",\n        \"OTP_EMAIL\",\n        \"NO_AUTHEN\",\n        \"EKYC_EMAIL\",\n        \"USB_TOKEN\",\n        \"SMART_CA\"\n      ],\n      \"userId\": \"duynk794@tng.vn\",\n      \"sequence\": 1,\n      \"limitDate\": 3\n    },\n    {\n      \"signType\": \"APPROVE\",\n      \"signForm\": [\n        \"OTP\",\n        \"EKYC\",\n        \"OTP_EMAIL\",\n        \"NO_AUTHEN\",\n        \"EKYC_EMAIL\",\n        \"USB_TOKEN\",\n        \"SMART_CA\"\n      ],\n      \"departmentId\": \"\",\n      \"userId\": \"33ddab26-6b0e-4c29-b300-f0f79e56481b\",\n      \"sequence\": 2,\n      \"limitDate\": 3\n    }\n  ],\n  \"signForm\": [\n     \"USB_TOKEN\",\n       \"SMART_CA\"\n  ],\n  \"templateId\": \"606196ce5e3f61a09ef8ed55\",\n  \"title\": \"test create contract\",\n  \"validDate\": \"2021-11-17\",\n  \"verificationType\": \"NONE\",\n  \"fixedPosition\": false\n}");
+                formdata.append("", fileInput.files[0], fileInput.files[0].name);
+                formdata.append("fields", "{}");
+
+                var requestOptions = {
+                  method: 'POST',
+                  headers: myHeaders,
+                  body: formdata,
+                  redirect: 'follow'
+                };
+
+                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/{"+idContract+"}/digital-sign", requestOptions)
+                  .then(response => response.text())
+                  .then(result => console.log(result))
+                  .catch(error => console.log('error', error));
+			}
+
+			function guiHopDong(){
+			    var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+                var idContract = document.getElementById("contractGroupId").value;
+                if(idContract == ""){
+                    alert("Vui lòng tạo hợp đồng trước khi gửi");
+                    return;
+                }
+                var raw = "";
+
+                var requestOptions = {
+                  method: 'POST',
+                  headers: myHeaders,
+                  body: raw,
+                  redirect: 'follow'
+                };
+
+                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/"+idContract+"/submit-contract", requestOptions)
+                  .then(response => response.text())
+                  .then(result => console.log(result))
+                  .catch(error => console.log('error', error));
+            }
+
+            function uploadHopDong(){
+                var myHeaders = new Headers();
+                var accessToken = document.getElementById("accesstoken").value;
+                if(accessToken == ""){
+                    alert("Vui lòng lấy access token trước khi upload hợp đồng");
+                    return;
+                }
+                myHeaders.append("Authorization", "Bearer " + accessToken);
+
+                var formdata = new FormData();
+                formdata.append("file", fileInput.files[0], "/Users/thopn95/C/CÔNG VIỆC/c72c7c08-3e0e-4e59-b011-2407a31ee124.pdf");
+                formdata.append("data", "{\n\"SignForm\":\"OTP_EMAIL\",\n\"name\": \"Phan Ngọc Thơ\",\n\"taxCode\":\"1231231234\",\n\"provider\": \"Công Ty VNPT\",\n\"pathImg\": \"iVBORw0KGgoAAAANSUhEUgAAAZAAAAJYCAYAAABM7LCIAABym\",\n\"identifierCode\": \"1231231234\", \n\"phone\":\"0917881199\",\n\"email\":\"abc@gmail.com\",\n\"phone\":\"0917881199\",\n\"status\": \"VALID\",\n\"signType\": \"APPROVAL\",\n\"ekycInfo\": \"APPROVAL\",\n}");
+
+                var requestOptions = {
+                  method: 'POST',
+                  headers: myHeaders,
+                  body: formdata,
+                  redirect: 'follow'
+                };
+
+                fetch("https://apigateway-econtract-staging.vnptit3.vn/esolution-service/contracts/{contractId}/digital-sign", requestOptions)
+                  .then(response => response.text())
+                  .then(result => console.log(result))
+                  .catch(error => console.log('error', error));
+                            }
+        </script>
+    </body>
+</html>
